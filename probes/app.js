@@ -8,7 +8,7 @@ var route = express.Router();
 
 // global var to track app health
 var liveness_healthy = true;
-var startup_healthy = true;
+var startup_healthy = false;
 var readiness_healthy = true;
 
 app.use('/', route);
@@ -20,13 +20,13 @@ route.get('/', function (req, res) {
 
 // A route that returns readiness status
 // simulates readiness 30 seconds after start up
-route.get('/readiness_healthy', function (req, res) {
+route.get('/readiness_healthz', function (req, res) {
   if (readiness_healthy) {
-    console.log('ping /healthz => pong [healthy]');
+    console.log('ping /readiness_healthz => pong [healthy]');
     res.send('OK\n');
   }
   else {
-    console.log('ping /healthz => pong [unhealthy]');
+    console.log('ping /readiness_healthz => pong [unhealthy]');
     res.status(503);
     res.send('Error!. App not healthy!\n');
   }
@@ -34,26 +34,28 @@ route.get('/readiness_healthy', function (req, res) {
 
 // A route that returns readiness status
 // simulates readiness 30 seconds after start up
-route.get('/startup_healthy', function (req, res) {
-  if (startup_healthy) {
-    console.log('ping /healthz => pong [healthy]');
-    res.send('OK\n');
+route.get('/startup_healthz', function (req, res) {
+  var now = Math.floor(Date.now() / 1000);
+  var lapsed = now - started;
+  if (lapsed > 60) {
+    console.log('ping /startup_healthz => pong [ready]');
+    res.send('Ready for service requests...\n');
   }
   else {
-    console.log('ping /healthz => pong [unhealthy]');
+    console.log('ping /startup_healthz => pong [notready]');
     res.status(503);
-    res.send('Error!. App not healthy!\n');
+    res.send('Error! Service not ready for requests...\n');
   }
 });
 
 // A route that returns health status
 route.get('/liveness_healthz', function (req, res) {
   if (liveness_healthy) {
-    console.log('ping /healthz => pong [healthy]');
+    console.log('ping /liveness_healthz => pong [healthy]');
     res.send('OK\n');
   }
   else {
-    console.log('ping /healthz => pong [unhealthy]');
+    console.log('ping /liveness_healthz => pong [unhealthy]');
     res.status(503);
     res.send('Error!. App not healthy!\n');
   }
