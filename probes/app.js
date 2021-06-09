@@ -60,7 +60,7 @@ route.get('/liveness_healthz', function (req, res) {
 });
 
 // This route handles switching the state of the app
-route.route('/flip_liveness').get(function (req, res) {
+route.route('/flip').get(function (req, res) {
 
   var flag = req.query.op;
   if (flag == "liveness_kill") {
