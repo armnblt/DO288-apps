@@ -1,68 +1,102 @@
 var express = require('express'),
-    app     = express();
+  app = express();
 
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
+  ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 
 var route = express.Router();
 
 // global var to track app health
-var healthy = true;
+var liveness_healthy = true;
+var startup_healthy = true;
+var readiness_healthy = true;
 
 app.use('/', route);
 
 // A route that says hello
-route.get('/', function(req, res) {
-    res.send('Hello! This is the index page for the app.\n');
+route.get('/', function (req, res) {
+  res.send('Hello! This is the index page for the app.\n');
 });
 
 // A route that returns readiness status
 // simulates readiness 30 seconds after start up
-route.get('/ready', function(req, res) {
-      var now = Math.floor(Date.now() / 1000);
-      var lapsed = now - started;
-      if (lapsed > 30) {
-        console.log('ping /ready => pong [ready]');
-        res.send('Ready for service requests...\n');
-      }
-      else {
-	console.log('ping /ready => pong [notready]');
-	res.status(503);
-        res.send('Error! Service not ready for requests...\n');
-      }
+route.get('/readiness_healthy', function (req, res) {
+  if (readiness_healthy) {
+    console.log('ping /healthz => pong [healthy]');
+    res.send('OK\n');
+  }
+  else {
+    console.log('ping /healthz => pong [unhealthy]');
+    res.status(503);
+    res.send('Error!. App not healthy!\n');
+  }
+});
+
+// A route that returns readiness status
+// simulates readiness 30 seconds after start up
+route.get('/startup_healthy', function (req, res) {
+  if (startup_healthy) {
+    console.log('ping /healthz => pong [healthy]');
+    res.send('OK\n');
+  }
+  else {
+    console.log('ping /healthz => pong [unhealthy]');
+    res.status(503);
+    res.send('Error!. App not healthy!\n');
+  }
 });
 
 // A route that returns health status
-route.get('/healthz', function(req, res) {
-    if (healthy) {
-      console.log('ping /healthz => pong [healthy]');
-      res.send('OK\n');
-    }
-    else {
-      console.log('ping /healthz => pong [unhealthy]');
-      res.status(503);
-      res.send('Error!. App not healthy!\n');
-    }
+route.get('/liveness_healthz', function (req, res) {
+  if (liveness_healthy) {
+    console.log('ping /healthz => pong [healthy]');
+    res.send('OK\n');
+  }
+  else {
+    console.log('ping /healthz => pong [unhealthy]');
+    res.status(503);
+    res.send('Error!. App not healthy!\n');
+  }
 });
 
 // This route handles switching the state of the app
-route.route('/flip').get(function(req, res) {
+route.route('/flip_liveness').get(function (req, res) {
 
-        var flag = req.query.op;
-        if (flag == "kill") {
-	  console.log('Received kill request. Changing app state to unhealthy...');
-	  healthy = false;
-	  res.send('Switched app state to unhealthy...\n');
-	}
-	else if (flag == "awaken") {
-	  console.log('Received awaken request. Changing app state to healthy...');
-	  healthy = true;
-	  res.send('Switched app state to healthy...\n');
-	}
-	else {
-	  res.send('Error! unknown flag...\n');
-	}
-    });
+  var flag = req.query.op;
+  if (flag == "liveness_kill") {
+    console.log('Received kill request. Changing app state to unhealthy...');
+    liveness_healthy = false;
+    res.send('Switched app state to liveness unhealthy...\n');
+  }
+  else if (flag == "liveness_awaken") {
+    console.log('Received awaken request. Changing app state to healthy...');
+    liveness_healthy = true;
+    res.send('Switched app state to liveness healthy...\n');
+  }
+  else if (flag == "startup_kill") {
+    console.log('Received awaken request. Changing app state to healthy...');
+    startup_healthy = true;
+    res.send('Switched app state to startup unhealthy...\n');
+  }
+  else if (flag == "startup_awaken") {
+    console.log('Received awaken request. Changing app state to healthy...');
+    startup_healthy = true;
+    res.send('Switched app state to startup healthy...\n');
+  }
+  else if (flag == "readiness_kill") {
+    console.log('Received awaken request. Changing app state to healthy...');
+    readiness_healthy = true;
+    res.send('Switched app state to readiness unhealthy...\n');
+  }
+  else if (flag == "readiness_awaken") {
+    console.log('Received awaken request. Changing app state to healthy...');
+    readiness_healthy = true;
+    res.send('Switched app state to readiness healthy...\n');
+  }
+  else {
+    res.send('Error! unknown flag...\n');
+  }
+});
 
 app.listen(port, ip);
 console.log('nodejs server running on http://%s:%s', ip, port);
