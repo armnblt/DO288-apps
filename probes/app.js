@@ -75,7 +75,7 @@ route.route('/flip').get(function (req, res) {
   }
   else if (flag == "startup_kill") {
     console.log('Received awaken request. Changing app state to healthy...');
-    startup_healthy = true;
+    startup_healthy = false;
     res.send('Switched app state to startup unhealthy...\n');
   }
   else if (flag == "startup_awaken") {
@@ -85,7 +85,7 @@ route.route('/flip').get(function (req, res) {
   }
   else if (flag == "readiness_kill") {
     console.log('Received awaken request. Changing app state to healthy...');
-    readiness_healthy = true;
+    readiness_healthy = false;
     res.send('Switched app state to readiness unhealthy...\n');
   }
   else if (flag == "readiness_awaken") {
